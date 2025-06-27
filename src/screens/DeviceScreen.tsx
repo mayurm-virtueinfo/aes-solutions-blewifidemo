@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { FC, useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { type NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -8,16 +8,16 @@ import { ESPDevice } from '@orbital-systems/react-native-esp-idf-provisioning';
 import type { StackParamList } from './types';
 import { styles } from './theme';
 
-export function DeviceScreen(
-  props: NativeStackScreenProps<StackParamList, 'Device'>
-) {
+const DeviceScreen: FC<NativeStackScreenProps<StackParamList, 'Device'>> = (
+  props
+) => {
   const insets = useSafeAreaInsets();
-  const [device, setDevice] = React.useState<ESPDevice | undefined>();
-  const [versionInfo, setVersionInfo] = React.useState<Record<string, any>>();
+  const [device, setDevice] = useState<ESPDevice | undefined>();
+  const [versionInfo, setVersionInfo] = useState<Record<string, any>>();
   const [deviceCapabilities, setDeviceCapabilities] =
-    React.useState<string[]>();
+    useState<string[]>();
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function getVersionInfo() {
       setVersionInfo(await device?.getVersionInfo());
     }
@@ -33,7 +33,7 @@ export function DeviceScreen(
   }, [device]);
 
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       (async () => {
         if (device) {
           return () => device?.disconnect();
@@ -52,7 +52,7 @@ export function DeviceScreen(
             props.route.params.softAPPassword,
             props.route.params.username
           );
-          console.info('Connected to espDevice : ',JSON.stringify(espDevice, null, 2));
+          console.info('Connected to espDevice : ', JSON.stringify(espDevice, null, 2));
           setDevice(espDevice);
         } catch (error) {
           console.error(error);
@@ -76,6 +76,15 @@ export function DeviceScreen(
     ])
   );
 
+  useLayoutEffect(() => {
+    if (!props.navigation) {
+      return;
+    }
+
+    props.navigation.setOptions({
+      title: 'Device Screen',
+    });
+  }, [props.navigation]);
   return (
     <View style={styles.container}>
       {device ? (
@@ -124,7 +133,7 @@ export function DeviceScreen(
         <Button
           title="Disconnect"
           onPress={() => {
-            console.log('Disconnecting from espDevice : ',JSON.stringify(device, null, 2));
+            console.log('Disconnecting from espDevice : ', JSON.stringify(device, null, 2));
             device?.disconnect();
             console.log('Disconnected from espDevice');
             props.navigation.goBack();
@@ -136,3 +145,4 @@ export function DeviceScreen(
     </View>
   );
 }
+export default DeviceScreen;

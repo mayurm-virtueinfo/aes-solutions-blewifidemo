@@ -1,15 +1,15 @@
 
 import React from 'react';
-import { View, Button } from 'react-native';
+import { View, Button, Alert } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 
 const manager = new BleManager();
 
-export default function Disconnect() {
+const Disconnect: React.FC = () => {
   const disconnect = async () => {
     const device = await manager.devices(['your-device-id']);
     await device[0].cancelConnection();
-    alert('Disconnected');
+    Alert.alert('','Disconnected');
   };
 
   return (
@@ -18,3 +18,4 @@ export default function Disconnect() {
     </View>
   );
 }
+export default Disconnect;

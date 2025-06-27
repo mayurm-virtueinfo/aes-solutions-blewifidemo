@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { FC, useCallback, useLayoutEffect, useState } from 'react';
 import { View, ScrollView, RefreshControl } from 'react-native';
 import { type NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Text, ListItem, Icon } from '@rneui/themed';
@@ -12,13 +12,13 @@ import { ListItemContent } from '@rneui/base/dist/ListItem/ListItem.Content';
 import { ListItemTitle } from '@rneui/base/dist/ListItem/ListItem.Title';
 import { ListItemSubtitle } from '@rneui/base/dist/ListItem/ListItem.Subtitle';
 
-export function WifiListScreen(
-  props: NativeStackScreenProps<StackParamList, 'WifiList'>
-) {
-  const [wifiList, setWifiList] = React.useState<ESPWifiList[] | undefined>();
-  const [loading, setLoading] = React.useState<boolean>(false);
+const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
+  props
+) => {
+  const [wifiList, setWifiList] = useState<ESPWifiList[] | undefined>();
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const onRefresh = React.useCallback(async () => {
+  const onRefresh = useCallback(async () => {
     try {
       const device = props.route.params.device;
 
@@ -43,6 +43,15 @@ export function WifiListScreen(
     [ESPWifiAuthMode.wpa2Wpa3Psk]: 'WPA2-WPA3-PSK',
   };
 
+  useLayoutEffect(() => {
+      if (!props.navigation) {
+        return;
+      }
+  
+      props.navigation.setOptions({
+        title: 'Wi-Fi List Scan Screen',
+      });
+    }, [props.navigation]);
   return (
     <View style={styles.container}>
       <ScrollView
@@ -107,3 +116,4 @@ export function WifiListScreen(
     </View>
   );
 }
+export default WifiListScreen;

@@ -11,7 +11,7 @@ type ScreenNavigationProp = NativeStackNavigationProp<StackParamList>;
 const manager = new BleManager();
 
 
-export default function BasicScan() {
+const BasicScan : React.FC = () => {
   const navigation = useNavigation<ScreenNavigationProp>();
   const [devices, setDevices] = useState<any[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<any>(null);
@@ -65,3 +65,4 @@ export default function BasicScan() {
     </View>
   );
 }
+export default BasicScan;

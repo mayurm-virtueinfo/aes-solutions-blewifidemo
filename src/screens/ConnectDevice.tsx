@@ -5,7 +5,7 @@ import { BleManager } from 'react-native-ble-plx';
 
 const manager = new BleManager();
 
-export default function ConnectDevice({route}: any) {
+const ConnectDevice : React.FC = ({route}: any) => {
   const { selectedDevice } = route.params;
   const [deviceInfo, setDeviceInfo] = useState<any>(null);
 
@@ -64,3 +64,4 @@ export default function ConnectDevice({route}: any) {
     </View>
   );
 }
+export default ConnectDevice;

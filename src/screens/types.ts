@@ -5,14 +5,14 @@ import {
 } from '@orbital-systems/react-native-esp-idf-provisioning';
 
 export type StackParamList = {
-  MainSelectionScreen:undefined;
+  HomeScreen:undefined;
   BLEProvisionScreen: undefined;
   BasicScan: undefined;
   ConnectDevice: {selectedDevice:any};
   ReadWrite: undefined;
   Notifications: undefined;
   Disconnect: undefined;
-  HomeScreen: undefined;
+  ESPIDFProvisionScreen: undefined;
   Settings: undefined;
   Provision:
     | { name: string; transport: ESPTransport; security: ESPSecurity }

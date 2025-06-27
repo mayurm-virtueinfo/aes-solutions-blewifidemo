@@ -6,9 +6,9 @@ import { Text, Button, Input } from '@rneui/themed';
 import type { StackParamList } from './types';
 import { styles } from './theme';
 
-export function SendDataScreen(
-  props: NativeStackScreenProps<StackParamList, 'SendData'>
-) {
+const SendDataScreen: React.FC< NativeStackScreenProps<StackParamList, 'SendData'>> = (
+  props
+) =>  {
   const insets = useSafeAreaInsets();
   const [path, setPath] = React.useState<string>('');
   const [data, setData] = React.useState<string>('');
@@ -59,3 +59,4 @@ export function SendDataScreen(
     </View>
   );
 }
+export default SendDataScreen;

@@ -5,7 +5,7 @@ import { BleManager } from 'react-native-ble-plx';
 
 const manager = new BleManager();
 
-export default function Notifications() {
+const Notifications: React.FC = () => {
   const [notifiedValue, setNotifiedValue] = useState('');
 
   useEffect(() => {
@@ -33,3 +33,4 @@ export default function Notifications() {
     </View>
   );
 }
+export default Notifications;

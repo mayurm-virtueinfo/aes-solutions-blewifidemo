@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, Alert, PermissionsAndroid, Platform } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 import base64 from 'react-native-base64';
-import BLEScanner from './BLEScanner';
+import BLEScanner from '../component/BLEScanner';
 import manager from '../utility/bleManager';
 
 const SERVICE_UUID = '12345678-1234-1234-1234-1234567890ab';
@@ -11,7 +11,7 @@ const SSID_CHAR_UUID = '12345678-1234-1234-1234-1234567890ac';
 const PASS_CHAR_UUID = '12345678-1234-1234-1234-1234567890ad';
 
 
-export default function BLEProvisionScreen() {
+const BLEProvisionScreen : React.FC = () => {
     const [ssid, setSsid] = useState('TestWiFi');
     const [password, setPassword] = useState('12345678');
     // const [deviceId, setDeviceId] = useState<string | null>(null);
@@ -108,3 +108,4 @@ export default function BLEProvisionScreen() {
         </View>
     );
 }
+export default BLEProvisionScreen;

@@ -9,7 +9,7 @@ import {
 } from '@orbital-systems/react-native-esp-idf-provisioning';
 import { styles } from './theme';
 
-export function SettingsScreen() {
+const SettingsScreen: React.FC = () => {
   const [prefix, setPrefix] = React.useState<string>('');
   const [transport, setTransport] = React.useState<ESPTransport>(
     ESPTransport.ble
@@ -131,3 +131,4 @@ export function SettingsScreen() {
     </View>
   );
 }
+export default SettingsScreen;

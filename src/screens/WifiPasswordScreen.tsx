@@ -9,9 +9,9 @@ import Loader from '../component/Loader';
 import { NetworkInfo } from 'react-native-network-info';
 import axios from 'axios';
 
-export function WifiPasswordScreen(
-  props: NativeStackScreenProps<StackParamList, 'WifiPassword'>
-) {
+const WifiPasswordScreen: React.FC< NativeStackScreenProps<StackParamList, 'WifiPassword'>> = (
+  props
+) => {
   const PORT = 80;
   const ENDPOINT = '/status';
   const insets = useSafeAreaInsets();
@@ -71,7 +71,7 @@ export function WifiPasswordScreen(
     scanIPRange(
       baseIP,
       (ip:any, data:any) => {
-        setDevices(prev => [...prev, { ip, data }]);
+        setDevices((prev:any) => [...prev, { ip, data }]);
       },
       () => setScanning(false)
     );
@@ -127,3 +127,4 @@ export function WifiPasswordScreen(
     </View>
   );
 }
+export default WifiPasswordScreen;

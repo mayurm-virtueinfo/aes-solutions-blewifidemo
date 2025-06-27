@@ -8,7 +8,7 @@ const DEVICE_ID = 'your-device-id';
 const SERVICE_UUID = 'your-service-uuid';
 const CHARACTERISTIC_UUID = 'your-char-uuid';
 
-export default function ReadWrite() {
+const ReadWrite: React.FC = () => {
   const [value, setValue] = useState('');
 
   const readChar = async () => {
@@ -35,3 +35,4 @@ export default function ReadWrite() {
     </View>
   );
 }
+export default ReadWrite;

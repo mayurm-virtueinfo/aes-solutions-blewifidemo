@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useLayoutEffect } from 'react';
 import { View, ScrollView } from 'react-native';
 import { type NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,9 +10,9 @@ import {
 import type { StackParamList } from './types';
 import { styles } from './theme';
 
-export function ProvisionScreen(
-  props: NativeStackScreenProps<StackParamList, 'Provision'>
-) {
+const ProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'Provision'>> = (
+  props
+) => {
   const insets = useSafeAreaInsets();
   const [name, setName] = React.useState<string>(
     props?.route?.params?.name ?? ''
@@ -27,6 +27,15 @@ export function ProvisionScreen(
   const [proofOfPossession, setProofOfPossession] = React.useState<string>();
   const [username, setUsername] = React.useState<string>();
 
+  useLayoutEffect(() => {
+    if (!props.navigation) {
+      return;
+    }
+
+    props.navigation.setOptions({
+      title: 'Provision ESP IDF Device',
+    });
+  }, [props.navigation]);
   return (
     <View style={styles.container}>
       <ScrollView>
@@ -99,13 +108,13 @@ export function ProvisionScreen(
         )}
         {(security === ESPSecurity.secure ||
           security === ESPSecurity.secure2) && (
-          <Input
-            label="Proof of possession"
-            placeholder="Proof of possession"
-            value={proofOfPossession}
-            onChangeText={(value) => setProofOfPossession(value)}
-          />
-        )}
+            <Input
+              label="Proof of possession"
+              placeholder="Proof of possession"
+              value={proofOfPossession}
+              onChangeText={(value) => setProofOfPossession(value)}
+            />
+          )}
       </ScrollView>
       <View style={{ paddingBottom: insets.bottom }}>
         <Button
@@ -122,7 +131,7 @@ export function ProvisionScreen(
             console.log('onPress : Connect : params : ', params);
             props.navigation.navigate('Device', params)
           }
-            
+
           }
           type="outline"
         />
@@ -130,3 +139,4 @@ export function ProvisionScreen(
     </View>
   );
 }
+export default ProvisionScreen;
