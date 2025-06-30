@@ -11,10 +11,13 @@ export const styles = StyleSheet.create({
   },
   provision: {},
   text: {
-    color: 'black',
-    width: '100%',
+    color: '#888', // light gray similar to the image
     fontSize: 16,
-    paddingVertical: 5,
+    width: 300,
+    textAlign: 'center',
+    lineHeight: 22,
+    alignSelf: 'center',
+    marginVertical: 16,
   },
 });
 

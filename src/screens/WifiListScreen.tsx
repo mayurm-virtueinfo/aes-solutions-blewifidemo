@@ -1,5 +1,5 @@
-import React, { FC, useCallback, useLayoutEffect, useState } from 'react';
-import { View, ScrollView, RefreshControl } from 'react-native';
+import React, { FC, useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { View, ScrollView, RefreshControl, Button } from 'react-native';
 import { type NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Text, ListItem, Icon } from '@rneui/themed';
 import {
@@ -11,26 +11,38 @@ import { styles } from './theme';
 import { ListItemContent } from '@rneui/base/dist/ListItem/ListItem.Content';
 import { ListItemTitle } from '@rneui/base/dist/ListItem/ListItem.Title';
 import { ListItemSubtitle } from '@rneui/base/dist/ListItem/ListItem.Subtitle';
+import LoaderWithMessage from '../component/LoaderWithMessage';
+import WifiProvisionModal from '../component/WifiProvisionModal';
 
 const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
   props
 ) => {
   const [wifiList, setWifiList] = useState<ESPWifiList[] | undefined>();
-  const [loading, setLoading] = useState<boolean>(false);
-
+  const [isLoading, setLoading] = useState<boolean>(false);
+  const [loaderText, setLoaderText] = useState<string>('');
+  const [ssid, setSsid] = useState<string>('');
+  const [showModal, setShowModal] = useState(false);
+  const [response, setResponse] = React.useState<string>('');
   const onRefresh = useCallback(async () => {
     try {
       const device = props.route.params.device;
 
       setLoading(true);
+      setLoaderText(`Scanning Wi-Fi networks on ${device.name}...`);
       const espWifiList = await device.scanWifiList();
       setLoading(false);
       setWifiList(espWifiList);
     } catch (error) {
       setLoading(false);
+      setLoaderText('');
+      setWifiList(undefined);
       console.error(error);
     }
   }, [props.route.params.device]);
+
+  useEffect(() => {
+    onRefresh();
+  }, []);
 
   const espWifiAuthToString = {
     [ESPWifiAuthMode.open]: 'Open',
@@ -49,25 +61,46 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
       }
   
       props.navigation.setOptions({
-        title: 'Wi-Fi List Scan Screen',
+        title: 'Select Wi-Fi Network',
       });
     }, [props.navigation]);
+
+  const onPressWifiItem = useCallback(
+    (ssid: string) => {
+      setSsid(ssid);
+      setShowModal(true);
+    },
+    [props.navigation, wifiList, props.route.params.device]
+  );
+
+  const onProvision = useCallback(async (passphrase: string) => {
+    try {
+      setLoading(true);
+      setLoaderText(`Provisioning ${ssid}...`);
+      const espResponse = await props.route.params.device.provision(
+        ssid,
+        passphrase
+      );
+      setResponse(JSON.stringify(espResponse));
+      setLoading(false);
+    } catch (error) {
+      setResponse((error as Error).toString());
+      setLoading(false);
+      console.error(error);
+    }
+  }, [props.route.params.device, ssid]);
+
   return (
     <View style={styles.container}>
+      <LoaderWithMessage loading={isLoading} loaderText={loaderText} />
       <ScrollView
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={onRefresh} />
+          <RefreshControl refreshing={false} onRefresh={onRefresh} />
         }
       >
-        <View
-          style={{
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: 20,
-          }}
-        >
-          <Text>Pull to scan wifi list</Text>
-        </View>
+        <Text style={styles.text} >
+          {`To continue setup of your device ${props.route.params.device.name}, please provide your Home Network's credentials.`}
+        </Text>
         {wifiList &&
           (wifiList.length ? (
             wifiList
@@ -86,12 +119,7 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
                   <ListItem
                     key={item.ssid}
                     bottomDivider
-                    onPress={() =>
-                      props.navigation.navigate('WifiPassword', {
-                        device: props.route.params.device,
-                        ssid: item.ssid,
-                      })
-                    }
+                    onPress={onPressWifiItem.bind(null, item.ssid)}
                   >
                     <Icon name={icon} type="material-community" />
                     <ListItemContent>
@@ -112,6 +140,26 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
               </ListItemContent>
             </ListItem>
           ))}
+        {
+          response != '' && (
+            <View>
+              <Text style={styles.text} h4>
+                Response
+              </Text>
+              <Text style={styles.text}>{response}</Text>
+            </View>
+          )
+        }
+        <WifiProvisionModal
+          visible={showModal}
+          wifiName={ssid}
+          onCancel={() => setShowModal(false)}
+          onProvision={(password) => {
+            console.log('Provisioning with password:', password);
+            setShowModal(false);
+            onProvision(password);
+          }}
+        />
       </ScrollView>
     </View>
   );

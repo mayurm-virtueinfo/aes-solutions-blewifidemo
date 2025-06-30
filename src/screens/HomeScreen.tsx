@@ -1,5 +1,5 @@
-import * as React from 'react';
-import { View } from 'react-native';
+import React, { useEffect } from 'react';
+import { PermissionsAndroid, Platform, View } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Button } from '@rneui/themed';
 
@@ -9,6 +9,20 @@ import { useNavigation } from '@react-navigation/native';
 type ScreenNavigationProp = NativeStackNavigationProp<StackParamList>;
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<ScreenNavigationProp>();
+
+  useEffect(() => {
+    requestPermissions();
+  }, []);
+
+  async function requestPermissions() {
+    if (Platform.OS === 'android') {
+      await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+      ]);
+    }
+  }
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
       <Button

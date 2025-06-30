@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { View, ScrollView, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { type NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -17,13 +17,17 @@ import { styles } from './theme';
 import { ListItemContent } from '@rneui/base/dist/ListItem/ListItem.Content';
 import { ListItemTitle } from '@rneui/base/dist/ListItem/ListItem.Title';
 import { ListItemSubtitle } from '@rneui/base/dist/ListItem/ListItem.Subtitle';
+import Loader from '../component/Loader';
+import LoaderWithMessage from '../component/LoaderWithMessage';
 
 const ESPIDFProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'ESPIDFProvisionScreen'>> = (
   props: NativeStackScreenProps<StackParamList, 'ESPIDFProvisionScreen'>,
 ) => {
 
   const [devices, setDevices] = useState<ESPDevice[] | undefined>();
+  const [connectedDevice, setConnectedDevice] = useState<ESPDevice | undefined>();
   const [isLoading, setLoading] = useState<boolean>(false);
+  const [loaderText, setLoaderText] = useState<string>('');
   const [prefix, setPrefix] = useState<string>('');
   const [transport, setTransport] = useState<ESPTransport>(
     ESPTransport.ble
@@ -32,7 +36,9 @@ const ESPIDFProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'ES
     ESPSecurity.secure2
   );
   const insets = useSafeAreaInsets();
-
+  const [softAPPassword, setSoftAPPassword] = React.useState<string>();
+  const [proofOfPossession, setProofOfPossession] = React.useState<string>();
+  const [username, setUsername] = React.useState<string>();
   useFocusEffect(
     useCallback(() => {
       DefaultPreference.get('prefix').then((value) => {
@@ -59,22 +65,24 @@ const ESPIDFProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'ES
     }
 
     props.navigation.setOptions({
-      title: 'ESP IDF Provisioning',
-      headerRight: () => (
-        <Button
-          icon={{ type: 'material-community', name: 'cog' }}
-          onPress={() => props.navigation.navigate('Settings')}
-          type="clear"
-          buttonStyle={{ padding: 0 }}
-        />
-      ),
+      title: `BLE Devices`,
+      // headerRight: () => (
+      //   <Button
+      //     icon={{ type: 'material-community', name: 'cog' }}
+      //     onPress={() => props.navigation.navigate('Settings')}
+      //     type="clear"
+      //     buttonStyle={{ padding: 0 }}
+      //   />
+      // ),
     });
   }, [props.navigation]);
 
   const onSearchESPDevices = useCallback(async () => {
     try {
       setLoading(true);
+      setLoaderText('Searching for BLE devices...');
       setDevices(undefined);
+      setConnectedDevice(undefined);
       const espDevices = await ESPProvisionManager.searchESPDevices(
         prefix ?? '',
         transport,
@@ -83,8 +91,10 @@ const ESPIDFProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'ES
       setLoading(false);
       setDevices(espDevices);
     } catch (error) {
-      setDevices([]);
       setLoading(false);
+      setLoaderText('');
+      setDevices([]);
+      setConnectedDevice(undefined);
       console.error(error);
     }
   }, [prefix, security, transport]);
@@ -95,12 +105,50 @@ const ESPIDFProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'ES
     [ESPSecurity.secure2]: 'Secure2',
   };
 
+  useEffect(() => {
+    onSearchESPDevices();
+  }, [])
+
+  const onPressBLEDevice = useCallback(async (device: ESPDevice) => {
+    console.log('Device pressed: new', JSON.stringify(device, null, 2));
+
+    // props.navigation.navigate('Provision', {
+    //   name: device.name,
+    //   transport: device.transport,
+    //   security: device.security,
+    // });
+    try {
+
+      setLoading(true);
+      setLoaderText(`Connecting to ${device.name}...`);
+      setConnectedDevice(undefined);
+      await device.connect(
+        proofOfPossession,
+        softAPPassword,
+        username
+      );
+      setLoading(false);
+      setLoaderText('');
+      setConnectedDevice(device);
+      props.navigation.navigate('WifiList', { device });
+      // console.info('Connected to espDevice : ', JSON.stringify(device, null, 2));
+
+    } catch (error) {
+      console.error(error);
+      setLoaderText('');
+      setLoading(false);
+      setConnectedDevice(undefined);
+    }
+  },
+    [devices, props.navigation]
+  );
   return (
     <View style={styles.container}>
+      <LoaderWithMessage loading={isLoading} loaderText={loaderText} />
       <ScrollView
         refreshControl={
           <RefreshControl
-            refreshing={isLoading}
+            refreshing={false}
             onRefresh={onSearchESPDevices}
           />
         }
@@ -108,7 +156,7 @@ const ESPIDFProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'ES
           flexGrow: 1,
         }}
       >
-        <View
+        {/* <View
           style={{
             justifyContent: 'center',
             alignItems: 'center',
@@ -119,7 +167,7 @@ const ESPIDFProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'ES
             Pull to search for devices{' '}
             {prefix ? `starting with "${prefix}"` : ''}
           </Text>
-        </View>
+        </View> */}
         <View style={{ flexGrow: 1 }}>
           {devices &&
             (devices.length ? (
@@ -127,18 +175,7 @@ const ESPIDFProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'ES
                 <ListItem
                   key={device.name}
                   bottomDivider
-                  onPress={() => {
-
-                    console.log('Device pressed:', JSON.stringify(device, null, 2));
-
-                    props.navigation.navigate('Provision', {
-                      name: device.name,
-                      transport: device.transport,
-                      security: device.security,
-                    })
-                  }
-
-                  }
+                  onPress={onPressBLEDevice.bind(null, device)}
                 >
                   <Icon name="chip" type="material-community" />
 
@@ -171,4 +208,4 @@ const ESPIDFProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'ES
     </View>
   );
 }
-export  default ESPIDFProvisionScreen;
+export default ESPIDFProvisionScreen;
