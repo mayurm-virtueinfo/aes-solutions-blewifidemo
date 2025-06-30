@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Alert } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 
 const manager = new BleManager();
@@ -17,7 +17,14 @@ const Notifications: React.FC = () => {
         'your-service-uuid',
         'your-char-uuid',
         (error, characteristic) => {
-          if (error) return console.error(error);
+          if (error) {
+            Alert.alert(
+              'Error connectToDevice',
+              JSON.stringify(error, null, 2)
+            );
+            // console.error(error);
+            return 
+          }
           const value = Buffer.from(characteristic?.value ?? '', 'base64').toString('utf8');
           setNotifiedValue(value);
         }

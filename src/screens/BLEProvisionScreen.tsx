@@ -37,7 +37,10 @@ const BLEProvisionScreen : React.FC = () => {
 
     function scanAndConnect() {
         manager.startDeviceScan(null, null, (error, device) => {
-            if (error) return console.error(error);
+            if (error) {
+                Alert.alert('Error', JSON.stringify(error, null, 2));
+                return ;
+            }
             if (device?.name?.includes('ESP32')) {
                 manager.stopDeviceScan();
                 setSelectedDevice(device);

@@ -1,5 +1,5 @@
 import React, { FC, useCallback, useEffect, useLayoutEffect, useState } from 'react';
-import { View, ScrollView, ActivityIndicator } from 'react-native';
+import { View, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { type NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -55,7 +55,11 @@ const DeviceScreen: FC<NativeStackScreenProps<StackParamList, 'Device'>> = (
           console.info('Connected to espDevice : ', JSON.stringify(espDevice, null, 2));
           setDevice(espDevice);
         } catch (error) {
-          console.error(error);
+          // console.error(error);
+          Alert.alert(
+            'Error connecting to espDevice:',
+            JSON.stringify(error, null, 2)
+          );
           props.navigation.goBack();
         }
 

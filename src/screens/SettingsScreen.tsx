@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { CheckBox, Input, Text } from '@rneui/themed';
 import DefaultPreference from 'react-native-default-preference';
@@ -44,7 +44,11 @@ const SettingsScreen: React.FC = () => {
         await DefaultPreference.set('prefix', prefix);
       }
     } catch (error) {
-      console.error(error);
+      // console.error(error);
+      Alert.alert(
+        'Error PrefixBlur',
+        JSON.stringify(error, null, 2)
+      );
     }
   }, [prefix]);
 

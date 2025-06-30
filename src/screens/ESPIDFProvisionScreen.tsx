@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
-import { View, ScrollView, RefreshControl } from 'react-native';
+import { View, ScrollView, RefreshControl, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { type NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -95,7 +95,11 @@ const ESPIDFProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'ES
       setLoaderText('');
       setDevices([]);
       setConnectedDevice(undefined);
-      console.error(error);
+      // console.error(error);
+      Alert.alert(
+        'Error Searching for BLE devices',
+        JSON.stringify(error, null, 2)
+      );
     }
   }, [prefix, security, transport]);
 
@@ -134,10 +138,14 @@ const ESPIDFProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'ES
       // console.info('Connected to espDevice : ', JSON.stringify(device, null, 2));
 
     } catch (error) {
-      console.error(error);
+      // console.error(error);
       setLoaderText('');
       setLoading(false);
       setConnectedDevice(undefined);
+      Alert.alert(
+        'Connection Error',
+        JSON.stringify(error, null, 2)
+      );
     }
   },
     [devices, props.navigation]

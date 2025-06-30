@@ -1,5 +1,5 @@
 import React, { FC, useCallback, useEffect, useLayoutEffect, useState } from 'react';
-import { View, ScrollView, RefreshControl, Button } from 'react-native';
+import { View, ScrollView, RefreshControl, Button, Alert } from 'react-native';
 import { type NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Text, ListItem, Icon } from '@rneui/themed';
 import {
@@ -36,7 +36,11 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
       setLoading(false);
       setLoaderText('');
       setWifiList(undefined);
-      console.error(error);
+      // console.error(error);
+      Alert.alert(
+        'Error scanWifiList',
+        `Failed to scan Wi-Fi networks on ${props.route.params.device.name}. Please try again. ${JSON.stringify(error, null, 2) }`
+      );
     }
   }, [props.route.params.device]);
 
@@ -73,10 +77,12 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
     [props.navigation, wifiList, props.route.params.device]
   );
 
-  const onProvision = useCallback(async (passphrase: string) => {
+  const onProvision = async (passphrase: string) => {
     try {
       setLoading(true);
+      console.log('Provisioning with password:', passphrase);
       setLoaderText(`Provisioning ${ssid}...`);
+      console.log('props.route.params.device : ',props.route.params.device)
       const espResponse = await props.route.params.device.provision(
         ssid,
         passphrase
@@ -86,9 +92,13 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
     } catch (error) {
       setResponse((error as Error).toString());
       setLoading(false);
-      console.error(error);
+      // console.error(error);
+      Alert.alert(
+        'Provisioning Error',
+        `Failed to provision ${ssid} with the provided password. Please try again. ${JSON.stringify(error, null, 2) }`
+      );
     }
-  }, [props.route.params.device, ssid]);
+  };
 
   return (
     <View style={styles.container}>
@@ -155,7 +165,6 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
           wifiName={ssid}
           onCancel={() => setShowModal(false)}
           onProvision={(password) => {
-            console.log('Provisioning with password:', password);
             setShowModal(false);
             onProvision(password);
           }}

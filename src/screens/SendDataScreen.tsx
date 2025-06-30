@@ -1,14 +1,14 @@
 import * as React from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, Alert } from 'react-native';
 import { type NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, Button, Input } from '@rneui/themed';
 import type { StackParamList } from './types';
 import { styles } from './theme';
 
-const SendDataScreen: React.FC< NativeStackScreenProps<StackParamList, 'SendData'>> = (
+const SendDataScreen: React.FC<NativeStackScreenProps<StackParamList, 'SendData'>> = (
   props
-) =>  {
+) => {
   const insets = useSafeAreaInsets();
   const [path, setPath] = React.useState<string>('');
   const [data, setData] = React.useState<string>('');
@@ -23,7 +23,11 @@ const SendDataScreen: React.FC< NativeStackScreenProps<StackParamList, 'SendData
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      console.error(error);
+      // console.error(error);
+      Alert.alert(
+        'Error sendData',
+        JSON.stringify(error, null, 2)
+      );
     }
   }, [data, path, props.route.params.device]);
 

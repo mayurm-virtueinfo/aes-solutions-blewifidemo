@@ -38,6 +38,7 @@ const WifiProvisionModal: React.FC<WifiProvisionModalProps> = ({
               secureTextEntry={secure}
               value={password}
               onChangeText={setPassword}
+              autoCapitalize="none"
             />
             <TouchableOpacity onPress={() => setSecure(!secure)}>
               <Icon

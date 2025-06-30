@@ -24,7 +24,9 @@ export default function App() {
     <NavigationContainer>
       {/* <Stack.Navigator initialRouteName="BLEProvisionScreen"> */}
       <Stack.Navigator initialRouteName="HomeScreen">
-        <Stack.Screen name="HomeScreen" component={HomeScreen} />
+        <Stack.Screen name="HomeScreen" component={HomeScreen} options={{
+          headerShown:false
+        }}/>
         <Stack.Screen name="BLEProvisionScreen" component={BLEProvisionScreen}/>
         <Stack.Screen name="BasicScan" component={BasicScan} />
         <Stack.Screen name="ConnectDevice" component={ConnectDevice} />

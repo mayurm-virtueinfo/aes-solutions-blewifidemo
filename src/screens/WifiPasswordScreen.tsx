@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, Alert } from 'react-native';
 import { type NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, Button, Input } from '@rneui/themed';
@@ -32,7 +32,11 @@ const WifiPasswordScreen: React.FC< NativeStackScreenProps<StackParamList, 'Wifi
     } catch (error) {
       setResponse((error as Error).toString());
       setLoading(false);
-      console.error(error);
+      // console.error(error);
+      Alert.alert(
+        'Error provisioning',
+        `Failed to provision ${ssid} with the provided password. Please try again. ${JSON.stringify(error, null, 2) }`
+      );
     }
   }, [passphrase, props.route.params.device, ssid]);
   const scanIPRange = async (baseIP: any, onFound: any, onComplete: any) => {
