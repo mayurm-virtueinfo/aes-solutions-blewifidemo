@@ -77,9 +77,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.aersolutions.app"
+    namespace "com.aersolutions.llc"
     defaultConfig {
-        applicationId "com.aersolutions.app"
+        applicationId "com.aersolutions.llc"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

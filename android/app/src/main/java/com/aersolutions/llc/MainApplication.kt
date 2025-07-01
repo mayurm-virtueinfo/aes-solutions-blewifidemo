@@ -1,4 +1,4 @@
-package com.aersolutions.app
+package com.aersolutions.llc
 
 import android.app.Application
 import com.facebook.react.PackageList

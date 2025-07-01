@@ -1,4 +1,4 @@
-package com.aersolutions.app
+package com.aersolutions.llc
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
