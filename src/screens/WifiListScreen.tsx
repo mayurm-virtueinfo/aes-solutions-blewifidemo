@@ -1,18 +1,22 @@
 import React, { FC, useCallback, useEffect, useLayoutEffect, useState } from 'react';
-import { View, ScrollView, RefreshControl, Button, Alert } from 'react-native';
+import {
+  View,
+  ScrollView,
+  RefreshControl,
+  Alert,
+  TouchableOpacity,
+  Text,
+} from 'react-native';
 import { type NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Text, ListItem, Icon } from '@rneui/themed';
 import {
   type ESPWifiList,
   ESPWifiAuthMode,
 } from '@orbital-systems/react-native-esp-idf-provisioning';
 import type { StackParamList } from './types';
 import { styles } from './theme';
-import { ListItemContent } from '@rneui/base/dist/ListItem/ListItem.Content';
-import { ListItemTitle } from '@rneui/base/dist/ListItem/ListItem.Title';
-import { ListItemSubtitle } from '@rneui/base/dist/ListItem/ListItem.Subtitle';
 import LoaderWithMessage from '../component/LoaderWithMessage';
 import WifiProvisionModal from '../component/WifiProvisionModal';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
   props
@@ -23,6 +27,7 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
   const [ssid, setSsid] = useState<string>('');
   const [showModal, setShowModal] = useState(false);
   const [response, setResponse] = React.useState<string>('');
+
   const onRefresh = useCallback(async () => {
     try {
       const device = props.route.params.device;
@@ -36,10 +41,9 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
       setLoading(false);
       setLoaderText('');
       setWifiList(undefined);
-      // console.error(error);
       Alert.alert(
         'Error scanWifiList',
-        `Failed to scan Wi-Fi networks on ${props.route.params.device.name}. Please try again. ${JSON.stringify(error, null, 2) }`
+        `Failed to scan Wi-Fi networks on ${props.route.params.device.name}. Please try again. ${JSON.stringify(error, null, 2)}`
       );
     }
   }, [props.route.params.device]);
@@ -60,29 +64,23 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
   };
 
   useLayoutEffect(() => {
-      if (!props.navigation) {
-        return;
-      }
-  
-      props.navigation.setOptions({
-        title: 'Select Wi-Fi Network',
-      });
-    }, [props.navigation]);
+    props.navigation.setOptions({
+      title: 'Select Wi-Fi Network',
+    });
+  }, [props.navigation]);
 
   const onPressWifiItem = useCallback(
     (ssid: string) => {
       setSsid(ssid);
       setShowModal(true);
     },
-    [props.navigation, wifiList, props.route.params.device]
+    [wifiList]
   );
 
   const onProvision = async (passphrase: string) => {
     try {
       setLoading(true);
-      console.log('Provisioning with password:', passphrase);
       setLoaderText(`Provisioning ${ssid}...`);
-      console.log('props.route.params.device : ',props.route.params.device)
       const espResponse = await props.route.params.device.provision(
         ssid,
         passphrase
@@ -92,10 +90,9 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
     } catch (error) {
       setResponse((error as Error).toString());
       setLoading(false);
-      // console.error(error);
       Alert.alert(
         'Provisioning Error',
-        `Failed to provision ${ssid} with the provided password. Please try again. ${JSON.stringify(error, null, 2) }`
+        `Failed to provision ${ssid} with the provided password. Please try again. ${JSON.stringify(error, null, 2)}`
       );
     }
   };
@@ -108,7 +105,7 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
           <RefreshControl refreshing={false} onRefresh={onRefresh} />
         }
       >
-        <Text style={styles.text} >
+        <Text style={styles.text}>
           {`To continue setup of your device ${props.route.params.device.name}, please provide your Home Network's credentials.`}
         </Text>
         {wifiList &&
@@ -126,40 +123,42 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
                 }
 
                 return (
-                  <ListItem
+                  <TouchableOpacity
                     key={item.ssid}
-                    bottomDivider
-                    onPress={onPressWifiItem.bind(null, item.ssid)}
+                    style={{
+                      borderBottomColor: 'gray',
+                      borderBottomWidth: 1,
+                      flexDirection: 'row',
+                      padding: 10,
+                      alignItems: 'center',
+                    }}
+                    onPress={() => onPressWifiItem(item.ssid)}
                   >
-                    <Icon name={icon} type="material-community" />
-                    <ListItemContent>
-                      <ListItemTitle>{item.ssid}</ListItemTitle>
-                      <ListItemSubtitle>
-                        {espWifiAuthToString[item.auth]}
-                      </ListItemSubtitle>
-                    </ListItemContent>
-                    <ListItem.Chevron />
-                  </ListItem>
+                    <MaterialCommunityIcons name={icon} size={24} />
+                    <View style={{ flex: 1, marginLeft: 15, marginRight: 15 }}>
+                      <Text>{item.ssid}</Text>
+                      <Text>{espWifiAuthToString[item.auth]}</Text>
+                    </View>
+                    <MaterialCommunityIcons
+                      name="arrow-right"
+                      size={24}
+                      color="gray"
+                    />
+                  </TouchableOpacity>
                 );
               })
           ) : (
-            <ListItem style={{ opacity: 0.5 }}>
-              <Icon name="alert-circle" type="material-community" />
-              <ListItemContent>
-                <ListItemTitle>No devices found</ListItemTitle>
-              </ListItemContent>
-            </ListItem>
-          ))}
-        {
-          response != '' && (
-            <View>
-              <Text style={styles.text} h4>
-                Response
-              </Text>
-              <Text style={styles.text}>{response}</Text>
+            <View style={{ opacity: 0.5, alignItems: 'center' }}>
+              <MaterialCommunityIcons name="alert-circle" size={32} color="gray" />
+              <Text>No devices found</Text>
             </View>
-          )
-        }
+          ))}
+        {response !== '' && (
+          <View>
+            <Text style={styles.text}>Response</Text>
+            <Text style={styles.text}>{response}</Text>
+          </View>
+        )}
         <WifiProvisionModal
           visible={showModal}
           wifiName={ssid}
@@ -172,5 +171,6 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
       </ScrollView>
     </View>
   );
-}
+};
+
 export default WifiListScreen;

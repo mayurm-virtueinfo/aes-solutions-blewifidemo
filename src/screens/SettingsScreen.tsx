@@ -1,13 +1,31 @@
 import * as React from 'react';
-import { View, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  ScrollView,
+  Alert,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { CheckBox, Input, Text } from '@rneui/themed';
 import DefaultPreference from 'react-native-default-preference';
 import {
   ESPTransport,
   ESPSecurity,
 } from '@orbital-systems/react-native-esp-idf-provisioning';
 import { styles } from './theme';
+
+const CheckBox: React.FC<{
+  title: string;
+  checked: boolean;
+  onPress: () => void;
+}> = ({ title, checked, onPress }) => (
+  <TouchableOpacity onPress={onPress} style={checkboxStyles.container}>
+    <View style={[checkboxStyles.box, checked && checkboxStyles.checkedBox]} />
+    <Text style={checkboxStyles.label}>{title}</Text>
+  </TouchableOpacity>
+);
 
 const SettingsScreen: React.FC = () => {
   const [prefix, setPrefix] = React.useState<string>('');
@@ -44,33 +62,24 @@ const SettingsScreen: React.FC = () => {
         await DefaultPreference.set('prefix', prefix);
       }
     } catch (error) {
-      // console.error(error);
-      Alert.alert(
-        'Error PrefixBlur',
-        JSON.stringify(error, null, 2)
-      );
+      Alert.alert('Error PrefixBlur', JSON.stringify(error, null, 2));
     }
   }, [prefix]);
 
   return (
     <View style={styles.container}>
-      <ScrollView>
-        <Input
-          label="Search prefix"
+      <ScrollView contentContainerStyle={{ padding: 16 }}>
+        <Text style={localStyles.label}>Search prefix</Text>
+        <TextInput
           placeholder="Search prefix"
           value={prefix}
-          onChangeText={(value) => setPrefix(value)}
+          onChangeText={setPrefix}
           onBlur={onPrefixBlur}
+          style={localStyles.input}
         />
-        <Text style={styles.text} h4>
-          Search transport
-        </Text>
-        <View
-          style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-          }}
-        >
+
+        <Text style={localStyles.heading}>Search transport</Text>
+        <View style={localStyles.checkboxGroup}>
           <CheckBox
             title="BLE"
             checked={transport === ESPTransport.ble}
@@ -87,52 +96,97 @@ const SettingsScreen: React.FC = () => {
               DefaultPreference.set('transport', ESPTransport.softap);
             }}
           />
-          <Text style={styles.text} h4>
-            Search security
-          </Text>
-          <View
-            style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
+        </View>
+
+        <Text style={localStyles.heading}>Search security</Text>
+        <View style={localStyles.checkboxGroup}>
+          <CheckBox
+            title="Insecure"
+            checked={security === ESPSecurity.unsecure}
+            onPress={() => {
+              setSecurity(ESPSecurity.unsecure);
+              DefaultPreference.set(
+                'security',
+                ESPSecurity.unsecure.toString()
+              );
             }}
-          >
-            <CheckBox
-              title="Insecure"
-              checked={security === ESPSecurity.unsecure}
-              onPress={() => {
-                setSecurity(ESPSecurity.unsecure);
-                DefaultPreference.set(
-                  'security',
-                  ESPSecurity.unsecure.toString()
-                );
-              }}
-            />
-            <CheckBox
-              title="Secure1"
-              checked={security === ESPSecurity.secure}
-              onPress={() => {
-                setSecurity(ESPSecurity.secure);
-                DefaultPreference.set(
-                  'security',
-                  ESPSecurity.secure.toString()
-                );
-              }}
-            />
-            <CheckBox
-              title="Secure2"
-              checked={security === ESPSecurity.secure2}
-              onPress={() => {
-                setSecurity(ESPSecurity.secure2);
-                DefaultPreference.set(
-                  'security',
-                  ESPSecurity.secure2.toString()
-                );
-              }}
-            />
-          </View>
+          />
+          <CheckBox
+            title="Secure1"
+            checked={security === ESPSecurity.secure}
+            onPress={() => {
+              setSecurity(ESPSecurity.secure);
+              DefaultPreference.set(
+                'security',
+                ESPSecurity.secure.toString()
+              );
+            }}
+          />
+          <CheckBox
+            title="Secure2"
+            checked={security === ESPSecurity.secure2}
+            onPress={() => {
+              setSecurity(ESPSecurity.secure2);
+              DefaultPreference.set(
+                'security',
+                ESPSecurity.secure2.toString()
+              );
+            }}
+          />
         </View>
       </ScrollView>
     </View>
   );
-}
+};
+
 export default SettingsScreen;
+
+const localStyles = StyleSheet.create({
+  label: {
+    fontSize: 16,
+    marginBottom: 8,
+    color: '#333',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 20,
+  },
+  heading: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  checkboxGroup: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+});
+
+const checkboxStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 20,
+    marginBottom: 10,
+  },
+  box: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#555',
+    marginRight: 8,
+    borderRadius: 4,
+  },
+  checkedBox: {
+    backgroundColor: '#007bff',
+  },
+  label: {
+    fontSize: 16,
+    color: '#333',
+  },
+});

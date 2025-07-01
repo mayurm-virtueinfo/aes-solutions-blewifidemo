@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { ImageBackground, PermissionsAndroid, Platform, View } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Button } from '@rneui/themed';
 
 import type { StackParamList } from './types';
 import { useNavigation } from '@react-navigation/native';
@@ -32,7 +31,7 @@ const HomeScreen: React.FC = () => {
 
       if (allGranted) {
         setTimeout(() => {
-          navigation.navigate('ESPIDFProvisionScreen');
+          navigation.replace('ESPIDFProvisionScreen');
         }, 3000);
       } else {
         console.warn('Some permissions were not granted.');
@@ -40,7 +39,7 @@ const HomeScreen: React.FC = () => {
     } else {
       // iOS or other platforms - skip permission check and navigate
       setTimeout(() => {
-        navigation.navigate('ESPIDFProvisionScreen');
+        navigation.replace('ESPIDFProvisionScreen');
       }, 3000);
     }
   }

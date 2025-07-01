@@ -1,9 +1,15 @@
 import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
-import { View, ScrollView, RefreshControl, Alert } from 'react-native';
+import {
+  View,
+  ScrollView,
+  RefreshControl,
+  Alert,
+  TouchableOpacity,
+  Text,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { type NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text, Button, ListItem, Icon } from '@rneui/themed';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import DefaultPreference from 'react-native-default-preference';
 import {
@@ -14,31 +20,23 @@ import {
 } from '@orbital-systems/react-native-esp-idf-provisioning';
 import type { StackParamList } from './types';
 import { styles } from './theme';
-import { ListItemContent } from '@rneui/base/dist/ListItem/ListItem.Content';
-import { ListItemTitle } from '@rneui/base/dist/ListItem/ListItem.Title';
-import { ListItemSubtitle } from '@rneui/base/dist/ListItem/ListItem.Subtitle';
-import Loader from '../component/Loader';
 import LoaderWithMessage from '../component/LoaderWithMessage';
 
-const ESPIDFProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'ESPIDFProvisionScreen'>> = (
-  props: NativeStackScreenProps<StackParamList, 'ESPIDFProvisionScreen'>,
-) => {
-
+const ESPIDFProvisionScreen: React.FC<
+  NativeStackScreenProps<StackParamList, 'ESPIDFProvisionScreen'>
+> = (props) => {
   const [devices, setDevices] = useState<ESPDevice[] | undefined>();
   const [connectedDevice, setConnectedDevice] = useState<ESPDevice | undefined>();
   const [isLoading, setLoading] = useState<boolean>(false);
   const [loaderText, setLoaderText] = useState<string>('');
   const [prefix, setPrefix] = useState<string>('');
-  const [transport, setTransport] = useState<ESPTransport>(
-    ESPTransport.ble
-  );
-  const [security, setSecurity] = useState<ESPSecurity>(
-    ESPSecurity.secure2
-  );
+  const [transport, setTransport] = useState<ESPTransport>(ESPTransport.ble);
+  const [security, setSecurity] = useState<ESPSecurity>(ESPSecurity.secure2);
   const insets = useSafeAreaInsets();
-  const [softAPPassword, setSoftAPPassword] = React.useState<string>();
-  const [proofOfPossession, setProofOfPossession] = React.useState<string>();
-  const [username, setUsername] = React.useState<string>();
+  const [softAPPassword, setSoftAPPassword] = useState<string>();
+  const [proofOfPossession, setProofOfPossession] = useState<string>();
+  const [username, setUsername] = useState<string>();
+
   useFocusEffect(
     useCallback(() => {
       DefaultPreference.get('prefix').then((value) => {
@@ -66,14 +64,6 @@ const ESPIDFProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'ES
 
     props.navigation.setOptions({
       title: `BLE Devices`,
-      // headerRight: () => (
-      //   <Button
-      //     icon={{ type: 'material-community', name: 'cog' }}
-      //     onPress={() => props.navigation.navigate('Settings')}
-      //     type="clear"
-      //     buttonStyle={{ padding: 0 }}
-      //   />
-      // ),
     });
   }, [props.navigation]);
 
@@ -95,11 +85,7 @@ const ESPIDFProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'ES
       setLoaderText('');
       setDevices([]);
       setConnectedDevice(undefined);
-      // console.error(error);
-      Alert.alert(
-        'Error Searching for BLE devices',
-        JSON.stringify(error, null, 2)
-      );
+      Alert.alert('Error Searching for BLE devices', JSON.stringify(error, null, 2));
     }
   }, [prefix, security, transport]);
 
@@ -111,109 +97,113 @@ const ESPIDFProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'ES
 
   useEffect(() => {
     onSearchESPDevices();
-  }, [])
+  }, []);
 
-  const onPressBLEDevice = useCallback(async (device: ESPDevice) => {
-    console.log('Device pressed: new', JSON.stringify(device, null, 2));
+  const onPressBLEDevice = useCallback(
+    async (device: ESPDevice) => {
+      console.log('Device pressed: new', JSON.stringify(device, null, 2));
 
-    // props.navigation.navigate('Provision', {
-    //   name: device.name,
-    //   transport: device.transport,
-    //   security: device.security,
-    // });
-    try {
+      props.navigation.navigate('Provision', {
+        name: device.name,
+        transport: device.transport,
+        security: device.security,
+      });
 
-      setLoading(true);
-      setLoaderText(`Connecting to ${device.name}...`);
-      setConnectedDevice(undefined);
-      await device.connect(
-        proofOfPossession,
-        softAPPassword,
-        username
-      );
-      setLoading(false);
-      setLoaderText('');
-      setConnectedDevice(device);
-      props.navigation.navigate('WifiList', { device });
-      // console.info('Connected to espDevice : ', JSON.stringify(device, null, 2));
-
-    } catch (error) {
-      // console.error(error);
-      setLoaderText('');
-      setLoading(false);
-      setConnectedDevice(undefined);
-      Alert.alert(
-        'Connection Error',
-        JSON.stringify(error, null, 2)
-      );
-    }
-  },
+      // Uncomment if you want to auto-connect before navigating
+      /*
+      try {
+        setLoading(true);
+        setLoaderText(`Connecting to ${device.name}...`);
+        setConnectedDevice(undefined);
+        await device.connect(proofOfPossession, softAPPassword, username);
+        setLoading(false);
+        setLoaderText('');
+        setConnectedDevice(device);
+        props.navigation.navigate('WifiList', { device });
+      } catch (error) {
+        setLoaderText('');
+        setLoading(false);
+        setConnectedDevice(undefined);
+        Alert.alert('Connection Error', JSON.stringify(error, null, 2));
+      }
+      */
+    },
     [devices, props.navigation]
   );
+
   return (
     <View style={styles.container}>
       <LoaderWithMessage loading={isLoading} loaderText={loaderText} />
       <ScrollView
         refreshControl={
-          <RefreshControl
-            refreshing={false}
-            onRefresh={onSearchESPDevices}
-          />
+          <RefreshControl refreshing={false} onRefresh={onSearchESPDevices} />
         }
-        contentContainerStyle={{
-          flexGrow: 1,
-        }}
+        contentContainerStyle={{ flexGrow: 1 }}
       >
-        {/* <View
-          style={{
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: 20,
-          }}
-        >
-          <Text>
-            Pull to search for devices{' '}
-            {prefix ? `starting with "${prefix}"` : ''}
-          </Text>
-        </View> */}
-        <View style={{ flexGrow: 1 }}>
-          {devices &&
-            (devices.length ? (
-              devices.map((device) => (
-                <ListItem
-                  key={device.name}
-                  bottomDivider
-                  onPress={onPressBLEDevice.bind(null, device)}
-                >
-                  <Icon name="chip" type="material-community" />
-
-                  <ListItemContent>
-                    <ListItemTitle>{device.name}</ListItemTitle>
-                    <ListItemSubtitle>
-                      {espSecurityToString[device.security]}
-                    </ListItemSubtitle>
-                  </ListItemContent>
-                  <ListItem.Chevron />
-                </ListItem>
-              ))
-            ) : (
-              <ListItem style={{ opacity: 0.5 }}>
-                <Icon name="alert-circle" type="material-community" />
-                <ListItem.Content>
-                  <ListItemTitle>No devices found</ListItemTitle>
-                </ListItem.Content>
-              </ListItem>
-            ))}
+        <View style={{ flexGrow: 1, marginTop: 20 }}>
+          {devices && devices.length ? (
+            devices.map((device) => (
+              <TouchableOpacity
+                key={device.name}
+                style={{
+                  borderBottomColor: 'gray',
+                  borderBottomWidth: 1,
+                  flexDirection: 'row',
+                  padding: 10,
+                  alignItems: 'center',
+                }}
+                onPress={() => onPressBLEDevice(device)}
+              >
+                <MaterialCommunityIcons
+                  name="chip"
+                  size={24}
+                  color="black"
+                  style={{ marginRight: 10 }}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text>{device.name}</Text>
+                  <Text>{espSecurityToString[device.security]}</Text>
+                </View>
+                <MaterialCommunityIcons
+                  name="arrow-right"
+                  size={24}
+                  color="gray"
+                />
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={{ opacity: 0.5, alignItems: 'center', marginTop: 50 }}>
+              <MaterialCommunityIcons
+                name="alert-circle"
+                size={30}
+                color="gray"
+              />
+              <Text style={{ marginTop: 10 }}>No devices found</Text>
+            </View>
+          )}
         </View>
       </ScrollView>
-      {/* <View style={{ paddingBottom: insets.bottom }}>
-        <Button
-          title="Provision"
-          type="outline"
+
+      {/* Optional Button Example */}
+      {/* 
+      <View style={{ paddingBottom: insets.bottom }}>
+        <TouchableOpacity
           onPress={() => props.navigation.navigate('Provision')}
-        />
-      </View> */}
+          style={{
+            padding: 10,
+            borderWidth: 1,
+            borderColor: '#007AFF',
+            borderRadius: 8,
+            alignItems: 'center',
+            margin: 10,
+          }}
+        >
+          <Text style={{ color: '#007AFF', fontWeight: 'bold' }}>Provision</Text>
+        </TouchableOpacity>
+      </View>
+      */}
     </View>
   );
-}
+};
+
 export default ESPIDFProvisionScreen;

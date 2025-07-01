@@ -1,14 +1,37 @@
 import React, { useLayoutEffect } from 'react';
-import { View, ScrollView } from 'react-native';
+import {
+  View,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
 import { type NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text, Button, Input, CheckBox } from '@rneui/themed';
 import {
   ESPTransport,
   ESPSecurity,
 } from '@orbital-systems/react-native-esp-idf-provisioning';
 import type { StackParamList } from './types';
 import { styles } from './theme';
+
+const CustomCheckBox = ({
+  title,
+  checked,
+  onPress,
+}: {
+  title: string;
+  checked: boolean;
+  onPress: () => void;
+}) => {
+  return (
+    <TouchableOpacity onPress={onPress} style={localStyles.checkboxContainer}>
+      <View style={[localStyles.checkbox, checked && localStyles.checkboxChecked]} />
+      <Text style={localStyles.checkboxLabel}>{title}</Text>
+    </TouchableOpacity>
+  );
+};
 
 const ProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'Provision'>> = (
   props
@@ -28,97 +51,93 @@ const ProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'Provisio
   const [username, setUsername] = React.useState<string>();
 
   useLayoutEffect(() => {
-    if (!props.navigation) {
-      return;
-    }
-
-    props.navigation.setOptions({
-      title: 'Provision ESP IDF Device',
-    });
+    if (!props.navigation) return;
+    props.navigation.setOptions({ title: 'Provision ESP IDF Device' });
   }, [props.navigation]);
+
   return (
     <View style={styles.container}>
-      <ScrollView>
-        <Input
-          label="Device name"
+      <ScrollView contentContainerStyle={{ padding: 16 }}>
+        <Text style={localStyles.label}>Device name</Text>
+        <TextInput
           placeholder="Device name"
           value={name}
-          onChangeText={(value) => setName(value)}
+          onChangeText={setName}
+          style={localStyles.input}
         />
-        <Text style={styles.text} h4>
-          Transport
-        </Text>
-        <View
-          style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-          }}
-        >
-          <CheckBox
+
+        <Text style={styles.text}>Transport</Text>
+        <View style={localStyles.row}>
+          <CustomCheckBox
             title="BLE"
             checked={transport === ESPTransport.ble}
             onPress={() => setTransport(ESPTransport.ble)}
           />
-          <CheckBox
+          <CustomCheckBox
             title="SoftAP"
             checked={transport === ESPTransport.softap}
             onPress={() => setTransport(ESPTransport.softap)}
           />
         </View>
-        <Text style={styles.text} h4>
-          Security
-        </Text>
-        <View
-          style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-          }}
-        >
-          <CheckBox
+
+        <Text style={styles.text}>Security</Text>
+        <View style={localStyles.row}>
+          <CustomCheckBox
             title="Insecure"
             checked={security === ESPSecurity.unsecure}
             onPress={() => setSecurity(ESPSecurity.unsecure)}
           />
-          <CheckBox
+          <CustomCheckBox
             title="Secure1"
             checked={security === ESPSecurity.secure}
             onPress={() => setSecurity(ESPSecurity.secure)}
           />
-          <CheckBox
+          <CustomCheckBox
             title="Secure2"
             checked={security === ESPSecurity.secure2}
             onPress={() => setSecurity(ESPSecurity.secure2)}
           />
         </View>
+
         {transport === ESPTransport.softap && (
-          <Input
-            label="SoftAP password"
-            placeholder="SoftAP password"
-            value={softAPPassword}
-            onChangeText={(value) => setSoftAPPassword(value)}
-          />
+          <>
+            <Text style={localStyles.label}>SoftAP password</Text>
+            <TextInput
+              placeholder="SoftAP password"
+              value={softAPPassword}
+              onChangeText={setSoftAPPassword}
+              style={localStyles.input}
+            />
+          </>
         )}
+
         {security === ESPSecurity.secure2 && (
-          <Input
-            label="Username"
-            placeholder="Username"
-            value={username}
-            onChangeText={(value) => setUsername(value)}
-          />
+          <>
+            <Text style={localStyles.label}>Username</Text>
+            <TextInput
+              placeholder="Username"
+              value={username}
+              onChangeText={setUsername}
+              style={localStyles.input}
+            />
+          </>
         )}
-        {(security === ESPSecurity.secure ||
-          security === ESPSecurity.secure2) && (
-            <Input
-              label="Proof of possession"
+
+        {(security === ESPSecurity.secure || security === ESPSecurity.secure2) && (
+          <>
+            <Text style={localStyles.label}>Proof of possession</Text>
+            <TextInput
               placeholder="Proof of possession"
               value={proofOfPossession}
-              onChangeText={(value) => setProofOfPossession(value)}
+              onChangeText={setProofOfPossession}
+              style={localStyles.input}
             />
-          )}
+          </>
+        )}
       </ScrollView>
-      <View style={{ paddingBottom: insets.bottom }}>
-        <Button
-          title="Connect"
+
+      <View style={{ padding: 16, paddingBottom: insets.bottom }}>
+        <TouchableOpacity
           onPress={() => {
             const params = {
               name,
@@ -127,16 +146,70 @@ const ProvisionScreen: React.FC<NativeStackScreenProps<StackParamList, 'Provisio
               softAPPassword,
               username,
               proofOfPossession,
-            }
+            };
             console.log('onPress : Connect : params : ', params);
-            props.navigation.navigate('Device', params)
-          }
-
-          }
-          type="outline"
-        />
+            props.navigation.navigate('Device', params);
+          }}
+          style={localStyles.button}
+        >
+          <Text style={localStyles.buttonText}>Connect</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
-}
+};
+
+const localStyles = StyleSheet.create({
+  label: {
+    fontSize: 16,
+    marginTop: 12,
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginVertical: 8,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+    marginBottom: 8,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#333',
+    marginRight: 8,
+    backgroundColor: '#fff',
+  },
+  checkboxChecked: {
+    backgroundColor: '#007BFF',
+  },
+  checkboxLabel: {
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: '#007BFF',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFF',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+});
+
 export default ProvisionScreen;
