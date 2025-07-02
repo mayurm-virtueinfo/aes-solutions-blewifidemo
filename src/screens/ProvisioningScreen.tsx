@@ -102,12 +102,15 @@ const ProvisioningScreen: React.FC<NativeStackScreenProps<StackParamList, 'Provi
       if (refTimer.current) {
         clearTimeout(refTimer.current);
       }
-      setResponse(null);
+      const status : ESPStatusResponse = {
+        status : 'fail'
+      }
       setLoading(false);
-      Alert.alert(
-        'Provisioning Error',
-        `Failed to provision ${props.route.params.ssid} with the provided password. Please try again. ${JSON.stringify(error, null, 2)}`
-      );
+      setResponse(status);
+      // Alert.alert(
+      //   'Provisioning Error',
+      //   `Failed to provision ${props.route.params.ssid} with the provided password. Please try again. ${JSON.stringify(error, null, 2)}`
+      // );
     }
   }
   const handleOk = () => {
@@ -165,13 +168,12 @@ const ProvisioningScreen: React.FC<NativeStackScreenProps<StackParamList, 'Provi
           (!loading && response != null && response.status != 'success') && <View style={{alignItems:'center',justifyContent:'center'}}>
             <View style={styles.statusRowFailed}>
               {/* <Ionicons name="checkmark-circle" size={24} color="#5B4DE3" /> */}
-              <Text style={styles.statusTextFailed}>Failed Sending Wi-Fi credentials</Text>
+              <Text style={styles.statusTextFailed}>Incorrect Wi-Fi credentials</Text>
             </View>
 
-            <View style={styles.statusRow}>
-              {/* <Ionicons name="checkmark-circle" size={24} color="#5B4DE3" /> */}
+            {/* <View style={styles.statusRow}>
               <Text style={styles.statusTextFailed}>{JSON.stringify(response)}</Text>
-            </View>
+            </View> */}
           </View>
         }
       </View>
