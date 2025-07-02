@@ -10,6 +10,7 @@ import {
 import { type NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   type ESPWifiList,
+  ESPDevice,
   ESPWifiAuthMode,
 } from '@orbital-systems/react-native-esp-idf-provisioning';
 import type { StackParamList } from './types';
@@ -17,6 +18,7 @@ import { styles } from './theme';
 import LoaderWithMessage from '../component/LoaderWithMessage';
 import WifiProvisionModal from '../component/WifiProvisionModal';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useFocusEffect } from '@react-navigation/native';
 
 const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
   props
@@ -50,7 +52,16 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
 
   useEffect(() => {
     onRefresh();
+
+    return () => {
+      disconnectToDevice();
+    };
   }, []);
+
+  const disconnectToDevice = () => {
+    console.log('disconnectToDevice : ',props?.route?.params?.device?.name);
+    props?.route?.params?.device?.disconnect();
+  }
 
   const espWifiAuthToString = {
     [ESPWifiAuthMode.open]: 'Open',
@@ -78,6 +89,13 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
   );
 
   const onProvision = async (passphrase: string) => {
+    const device: ESPDevice = props.route.params.device;
+    props.navigation.navigate('ProvisioningScreen', {
+      device,
+      ssid,
+      passphrase
+    })
+    return;
     try {
       setLoading(true);
       setLoaderText(`Provisioning ${ssid}...`);
@@ -106,7 +124,11 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
         }
       >
         <Text style={styles.text}>
-          {`To continue setup of your device ${props.route.params.device.name}, please provide your Home Network's credentials.`}
+          {`To continue setup of your device `}
+          <Text style={{ color: 'blue' }}>
+            {props.route.params.device.name}
+          </Text>
+          {`, please provide your Home Network's credentials.`}
         </Text>
         {wifiList &&
           (wifiList.length ? (
@@ -134,15 +156,15 @@ const WifiListScreen: FC<NativeStackScreenProps<StackParamList, 'WifiList'>> = (
                     }}
                     onPress={() => onPressWifiItem(item.ssid)}
                   >
-                    <MaterialCommunityIcons name={icon} size={24} />
+                    <MaterialCommunityIcons name={icon} size={24} color={'blue'}/>
                     <View style={{ flex: 1, marginLeft: 15, marginRight: 15 }}>
-                      <Text>{item.ssid}</Text>
+                      <Text style={{color:'blue'}}>{item.ssid}</Text>
                       <Text>{espWifiAuthToString[item.auth]}</Text>
                     </View>
                     <MaterialCommunityIcons
                       name="arrow-right"
                       size={24}
-                      color="gray"
+                      color="blue"
                     />
                   </TouchableOpacity>
                 );

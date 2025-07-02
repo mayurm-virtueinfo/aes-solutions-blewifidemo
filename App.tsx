@@ -17,6 +17,7 @@ import DeviceScreen from './src/screens/DeviceScreen';
 import WifiListScreen from './src/screens/WifiListScreen';
 import WifiPasswordScreen from './src/screens/WifiPasswordScreen';
 import SendDataScreen from './src/screens/SendDataScreen';
+import ProvisioningScreen from './src/screens/ProvisioningScreen';
 const Stack = createNativeStackNavigator<StackParamList>();
 
 export default function App() {
@@ -36,6 +37,7 @@ export default function App() {
         <Stack.Screen name="ESPIDFProvisionScreen" component={ESPIDFProvisionScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="Provision" component={ProvisionScreen} />
+        <Stack.Screen name="ProvisioningScreen" component={ProvisioningScreen} />
         <Stack.Screen name="Device" component={DeviceScreen} />
         <Stack.Screen name="WifiList" component={WifiListScreen} />
         <Stack.Screen name="WifiPassword" component={WifiPasswordScreen} />

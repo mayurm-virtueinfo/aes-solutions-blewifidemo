@@ -18,6 +18,7 @@ export type StackParamList = {
     | { name: string; transport: ESPTransport; security: ESPSecurity }
     | undefined;
   WifiList: { device: ESPDevice };
+  ProvisioningScreen: { device: ESPDevice; ssid: string,passphrase: string };
   WifiPassword: { device: ESPDevice; ssid: string };
   Device: {
     name: string;

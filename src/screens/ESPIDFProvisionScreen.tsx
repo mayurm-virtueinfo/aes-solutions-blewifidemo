@@ -10,8 +10,10 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { type NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import DefaultPreference from 'react-native-default-preference';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ESPProvisionManager,
   ESPDevice,
@@ -34,34 +36,25 @@ const ESPIDFProvisionScreen: React.FC<
   const [security, setSecurity] = useState<ESPSecurity>(ESPSecurity.secure2);
   const insets = useSafeAreaInsets();
   const [softAPPassword, setSoftAPPassword] = useState<string>();
-  const [proofOfPossession, setProofOfPossession] = useState<string>();
+  const [proofOfPossession, setProofOfPossession] = useState<string>('');
   const [username, setUsername] = useState<string>();
 
   useFocusEffect(
     useCallback(() => {
-      DefaultPreference.get('prefix').then((value) => {
-        if (typeof value === 'string') {
-          setPrefix(value);
-        }
+      AsyncStorage.getItem('prefix').then((value) => {
+        if (value) setPrefix(value);
       });
-      DefaultPreference.get('transport').then((value) => {
-        if (typeof value === 'string') {
-          setTransport(value as ESPTransport);
-        }
+      AsyncStorage.getItem('transport').then((value) => {
+        if (value) setTransport(value as ESPTransport);
       });
-      DefaultPreference.get('security').then((value) => {
-        if (typeof value === 'string') {
-          setSecurity(Number(value) as ESPSecurity);
-        }
+      AsyncStorage.getItem('security').then((value) => {
+        if (value) setSecurity(Number(value) as ESPSecurity);
       });
     }, [])
   );
 
   useLayoutEffect(() => {
-    if (!props.navigation) {
-      return;
-    }
-
+    if (!props.navigation) return;
     props.navigation.setOptions({
       title: `BLE Devices`,
     });
@@ -102,20 +95,35 @@ const ESPIDFProvisionScreen: React.FC<
   const onPressBLEDevice = useCallback(
     async (device: ESPDevice) => {
       console.log('Device pressed: new', JSON.stringify(device, null, 2));
-
-      props.navigation.navigate('Provision', {
-        name: device.name,
-        transport: device.transport,
-        security: device.security,
-      });
-
+      // props.navigation.navigate('Provision', {
+      //   name: device.name,
+      //   transport: device.transport,
+      //   security: device.security,
+      // });
+      // return;
       // Uncomment if you want to auto-connect before navigating
-      /*
       try {
         setLoading(true);
         setLoaderText(`Connecting to ${device.name}...`);
         setConnectedDevice(undefined);
-        await device.connect(proofOfPossession, softAPPassword, username);
+        // await device.connect(proofOfPossession, softAPPassword, username);
+
+        console.log('🔹 Pressed device:', device.name);
+        console.log('🔹 Transport:', transport);
+        console.log('🔹 Security:', security);
+        console.log('🔹 PoP:', proofOfPossession);
+        console.log('🔹 PoP:', typeof proofOfPossession);
+        device.security = ESPSecurity.unsecure;
+      // if ((security === ESPSecurity.secure || security === ESPSecurity.secure2) && !proofOfPossession) {
+      //   Alert.alert("Missing PoP", "Proof of Possession is required.");
+      //   setLoading(false);
+      //   setLoaderText('');
+      //   return;
+      // }
+
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        await device.connect(proofOfPossession);
         setLoading(false);
         setLoaderText('');
         setConnectedDevice(device);
@@ -124,9 +132,9 @@ const ESPIDFProvisionScreen: React.FC<
         setLoaderText('');
         setLoading(false);
         setConnectedDevice(undefined);
+        console.log('Connection Error : ',JSON.stringify(error, null, 2))
         Alert.alert('Connection Error', JSON.stringify(error, null, 2));
       }
-      */
     },
     [devices, props.navigation]
   );
@@ -140,7 +148,11 @@ const ESPIDFProvisionScreen: React.FC<
         }
         contentContainerStyle={{ flexGrow: 1 }}
       >
+        <Text style={styles.text}>
+                    {`To provision your new device, please make sure that your Phone's Bluetooth is turned on and within range of your new device.`}
+                  </Text>
         <View style={{ flexGrow: 1, marginTop: 20 }}>
+          
           {devices && devices.length ? (
             devices.map((device) => (
               <TouchableOpacity
@@ -154,54 +166,36 @@ const ESPIDFProvisionScreen: React.FC<
                 }}
                 onPress={() => onPressBLEDevice(device)}
               >
-                <MaterialCommunityIcons
-                  name="chip"
+                <FontAwesome
+                  name="bluetooth"
                   size={24}
-                  color="black"
+                  color="blue"
                   style={{ marginRight: 10 }}
                 />
                 <View style={{ flex: 1 }}>
-                  <Text>{device.name}</Text>
+                  <Text style={{color:'blue'}}>{device.name}</Text>
                   <Text>{espSecurityToString[device.security]}</Text>
                 </View>
-                <MaterialCommunityIcons
-                  name="arrow-right"
+                <Ionicons
+                  name="arrow-forward"
                   size={24}
-                  color="gray"
+                  color="blue"
                 />
               </TouchableOpacity>
             ))
           ) : (
-            <View style={{ opacity: 0.5, alignItems: 'center', marginTop: 50 }}>
-              <MaterialCommunityIcons
+            !isLoading && <View style={{  alignItems: 'center', marginTop: 50 }}>
+              <Ionicons
                 name="alert-circle"
                 size={30}
-                color="gray"
+                color="red"
               />
-              <Text style={{ marginTop: 10 }}>No devices found</Text>
+              <Text style={{ marginTop: 10,color:'red' }}>No devices found</Text>
             </View>
           )}
+          
         </View>
       </ScrollView>
-
-      {/* Optional Button Example */}
-      {/* 
-      <View style={{ paddingBottom: insets.bottom }}>
-        <TouchableOpacity
-          onPress={() => props.navigation.navigate('Provision')}
-          style={{
-            padding: 10,
-            borderWidth: 1,
-            borderColor: '#007AFF',
-            borderRadius: 8,
-            alignItems: 'center',
-            margin: 10,
-          }}
-        >
-          <Text style={{ color: '#007AFF', fontWeight: 'bold' }}>Provision</Text>
-        </TouchableOpacity>
-      </View>
-      */}
     </View>
   );
 };

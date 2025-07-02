@@ -9,7 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import DefaultPreference from 'react-native-default-preference';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ESPTransport,
   ESPSecurity,
@@ -38,33 +38,42 @@ const SettingsScreen: React.FC = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      DefaultPreference.get('prefix').then((value) => {
-        if (typeof value === 'string') {
-          setPrefix(value);
+      const loadPreferences = async () => {
+        try {
+          const storedPrefix = await AsyncStorage.getItem('prefix');
+          if (storedPrefix) setPrefix(storedPrefix);
+
+          const storedTransport = await AsyncStorage.getItem('transport');
+          if (storedTransport) setTransport(storedTransport as ESPTransport);
+
+          const storedSecurity = await AsyncStorage.getItem('security');
+          if (storedSecurity)
+            setSecurity(Number(storedSecurity) as ESPSecurity);
+        } catch (error) {
+          Alert.alert('Error loading preferences', JSON.stringify(error));
         }
-      });
-      DefaultPreference.get('transport').then((value) => {
-        if (typeof value === 'string') {
-          setTransport(value as ESPTransport);
-        }
-      });
-      DefaultPreference.get('security').then((value) => {
-        if (typeof value === 'string') {
-          setSecurity(Number(value) as ESPSecurity);
-        }
-      });
+      };
+      loadPreferences();
     }, [])
   );
 
   const onPrefixBlur = React.useCallback(async () => {
     try {
-      if (typeof prefix === 'string') {
-        await DefaultPreference.set('prefix', prefix);
-      }
+      await AsyncStorage.setItem('prefix', prefix);
     } catch (error) {
       Alert.alert('Error PrefixBlur', JSON.stringify(error, null, 2));
     }
   }, [prefix]);
+
+  const handleTransportChange = async (value: ESPTransport) => {
+    setTransport(value);
+    await AsyncStorage.setItem('transport', value);
+  };
+
+  const handleSecurityChange = async (value: ESPSecurity) => {
+    setSecurity(value);
+    await AsyncStorage.setItem('security', value.toString());
+  };
 
   return (
     <View style={styles.container}>
@@ -83,18 +92,12 @@ const SettingsScreen: React.FC = () => {
           <CheckBox
             title="BLE"
             checked={transport === ESPTransport.ble}
-            onPress={() => {
-              setTransport(ESPTransport.ble);
-              DefaultPreference.set('transport', ESPTransport.ble);
-            }}
+            onPress={() => handleTransportChange(ESPTransport.ble)}
           />
           <CheckBox
             title="SoftAP"
             checked={transport === ESPTransport.softap}
-            onPress={() => {
-              setTransport(ESPTransport.softap);
-              DefaultPreference.set('transport', ESPTransport.softap);
-            }}
+            onPress={() => handleTransportChange(ESPTransport.softap)}
           />
         </View>
 
@@ -103,35 +106,17 @@ const SettingsScreen: React.FC = () => {
           <CheckBox
             title="Insecure"
             checked={security === ESPSecurity.unsecure}
-            onPress={() => {
-              setSecurity(ESPSecurity.unsecure);
-              DefaultPreference.set(
-                'security',
-                ESPSecurity.unsecure.toString()
-              );
-            }}
+            onPress={() => handleSecurityChange(ESPSecurity.unsecure)}
           />
           <CheckBox
             title="Secure1"
             checked={security === ESPSecurity.secure}
-            onPress={() => {
-              setSecurity(ESPSecurity.secure);
-              DefaultPreference.set(
-                'security',
-                ESPSecurity.secure.toString()
-              );
-            }}
+            onPress={() => handleSecurityChange(ESPSecurity.secure)}
           />
           <CheckBox
             title="Secure2"
             checked={security === ESPSecurity.secure2}
-            onPress={() => {
-              setSecurity(ESPSecurity.secure2);
-              DefaultPreference.set(
-                'security',
-                ESPSecurity.secure2.toString()
-              );
-            }}
+            onPress={() => handleSecurityChange(ESPSecurity.secure2)}
           />
         </View>
       </ScrollView>
