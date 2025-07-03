@@ -6,6 +6,7 @@ import {
   Alert,
   TouchableOpacity,
   Text,
+  TextInput,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { type NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -94,7 +95,7 @@ const ESPIDFProvisionScreen: React.FC<
 
   const onPressBLEDevice = useCallback(
     async (device: ESPDevice) => {
-      console.log('Device pressed: new', JSON.stringify(device, null, 2));
+       console.log('Device pressed: new', JSON.stringify(device, null, 2));
       // props.navigation.navigate('Provision', {
       //   name: device.name,
       //   transport: device.transport,
@@ -112,14 +113,15 @@ const ESPIDFProvisionScreen: React.FC<
         console.log('🔹 Transport:', transport);
         console.log('🔹 Security:', security);
         console.log('🔹 PoP:', proofOfPossession);
-        console.log('🔹 PoP:', typeof proofOfPossession);
+        console.log('🔹 PoP Type:', typeof proofOfPossession);
+
         device.security = ESPSecurity.unsecure;
-      // if ((security === ESPSecurity.secure || security === ESPSecurity.secure2) && !proofOfPossession) {
-      //   Alert.alert("Missing PoP", "Proof of Possession is required.");
-      //   setLoading(false);
-      //   setLoaderText('');
-      //   return;
-      // }
+        // if ((security === ESPSecurity.secure || security === ESPSecurity.secure2) && !proofOfPossession) {
+        //   Alert.alert("Missing PoP", "Proof of Possession is required.");
+        //   setLoading(false);
+        //   setLoaderText('');
+        //   return;
+        // }
 
         await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -132,12 +134,22 @@ const ESPIDFProvisionScreen: React.FC<
         setLoaderText('');
         setLoading(false);
         setConnectedDevice(undefined);
-        console.log('Connection Error : ',JSON.stringify(error, null, 2))
+        console.log('Connection Error : ', JSON.stringify(error, null, 2));
         Alert.alert('Connection Error', JSON.stringify(error, null, 2));
       }
     },
     [devices, props.navigation]
   );
+
+  // Filtered list based on prefix input
+  const filteredDevices = devices?.filter((device) =>
+    device.name.toLowerCase().startsWith(prefix.toLowerCase())
+  );
+
+  // Save prefix to AsyncStorage for persistence
+  useEffect(() => {
+    AsyncStorage.setItem('prefix', prefix);
+  }, [prefix]);
 
   return (
     <View style={styles.container}>
@@ -146,15 +158,55 @@ const ESPIDFProvisionScreen: React.FC<
         refreshControl={
           <RefreshControl refreshing={false} onRefresh={onSearchESPDevices} />
         }
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom }}
       >
         <Text style={styles.text}>
-                    {`To provision your new device, please make sure that your Phone's Bluetooth is turned on and within range of your new device.`}
-                  </Text>
+          {`To provision your new device, please make sure that your Phone's Bluetooth is turned on and within range of your new device.`}
+        </Text>
+
+        {/* Prefix Filter UI */}
+        <View
+          style={{
+            flexDirection: 'row',
+            borderColor: '#6A0DAD',
+            borderWidth: 2,
+            borderRadius: 8,
+            marginHorizontal: 16,
+            marginTop: 20,
+            alignItems: 'center',
+            overflow: 'hidden',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: '#F5F5F5',
+              paddingVertical: 10,
+              paddingHorizontal: 14,
+            }}
+          >
+            <Text style={{ fontWeight: '600', fontSize: 14, color: 'black' }}>
+              Prefix
+            </Text>
+          </View>
+          <TextInput
+            value={prefix}
+            onChangeText={setPrefix}
+            placeholder="e.g. AER"
+            style={{
+              flex: 1,
+              paddingVertical: 10,
+              paddingHorizontal: 12,
+              fontSize: 14,
+              color: 'black',
+            }}
+            placeholderTextColor="#999"
+          />
+        </View>
+
+        {/* Device List */}
         <View style={{ flexGrow: 1, marginTop: 20 }}>
-          
-          {devices && devices.length ? (
-            devices.map((device) => (
+          {filteredDevices && filteredDevices.length ? (
+            filteredDevices.map((device) => (
               <TouchableOpacity
                 key={device.name}
                 style={{
@@ -173,27 +225,20 @@ const ESPIDFProvisionScreen: React.FC<
                   style={{ marginRight: 10 }}
                 />
                 <View style={{ flex: 1 }}>
-                  <Text style={{color:'blue'}}>{device.name}</Text>
+                  <Text style={{ color: 'blue' }}>{device.name}</Text>
                   <Text>{espSecurityToString[device.security]}</Text>
                 </View>
-                <Ionicons
-                  name="arrow-forward"
-                  size={24}
-                  color="blue"
-                />
+                <Ionicons name="arrow-forward" size={24} color="blue" />
               </TouchableOpacity>
             ))
           ) : (
-            !isLoading && <View style={{  alignItems: 'center', marginTop: 50 }}>
-              <Ionicons
-                name="alert-circle"
-                size={30}
-                color="red"
-              />
-              <Text style={{ marginTop: 10,color:'red' }}>No devices found</Text>
-            </View>
+            !isLoading && (
+              <View style={{ alignItems: 'center', marginTop: 50 }}>
+                <Ionicons name="alert-circle" size={30} color="red" />
+                <Text style={{ marginTop: 10, color: 'red' }}>No devices found</Text>
+              </View>
+            )
           )}
-          
         </View>
       </ScrollView>
     </View>
